@@ -94,11 +94,21 @@ değişmez.
 - [x] Veri katmanı (types, mock sahneler, adapter, Pixel Ninja segment sahnesi)
 - [x] Zustand skor + IndexedDB kalıcılık
 - [x] PWA manifest + service worker
-- [ ] Oyun 1: Uzaydan Bakınca Ne? — MVP
-- [ ] Oyun 2: Renk Avcısı — MVP
-- [ ] Oyun 3: Pixel Ninja — MVP
+- [x] Oyun 1: Uzaydan Bakınca Ne? — MVP (4 sahne)
+- [x] Oyun 2: Renk Avcısı — MVP (2 sahne × 3 görev)
+- [x] Oyun 3: Pixel Ninja — MVP (1 kolay sahne, 8 segment, OBIA)
+- [x] GitHub Actions ile GitHub Pages deploy
+- [ ] Gerçek Göktürk-2 görüntü entegrasyonu (gezgin.gov.tr adapter)
 - [ ] i18n (TR birincil, EN ikincil)
-- [ ] GitHub Actions ile deploy
+- [ ] Ek sahneler (orta / zor seviyeler, GEO Dedektif, NDVI Master)
+
+## GitHub Pages
+
+Her `main` veya `claude/satellite-game-platform-PGFhI` push'unda otomatik
+build/deploy tetiklenir. İlk deploy için **Settings → Pages → Source**
+seçeneği **GitHub Actions** olmalı. Yayın URL'si:
+
+`https://<kullanıcı>.github.io/gokturk/`
 
 ---
 

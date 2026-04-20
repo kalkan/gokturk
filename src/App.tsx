@@ -4,9 +4,14 @@ import { AppShell } from "./components/shell/AppShell";
 import { ComingSoon } from "./games/ComingSoon";
 import { UzaydanBakincaGame } from "./games/uzaydan-bakinca/UzaydanBakincaGame";
 import { RenkAvcisiGame } from "./games/renk-avcisi/RenkAvcisiGame";
+import { PixelNinjaGame } from "./games/pixel-ninja/PixelNinjaGame";
 import { GAMES } from "./data/games";
 
-const IMPLEMENTED: ReadonlySet<string> = new Set(["uzaydan-bakinca", "renk-avcisi"]);
+const IMPLEMENTED: ReadonlySet<string> = new Set([
+  "uzaydan-bakinca",
+  "renk-avcisi",
+  "pixel-ninja",
+]);
 
 export default function App() {
   return (
@@ -16,6 +21,7 @@ export default function App() {
 
         <Route path="/oyun/uzaydan-bakinca" element={<UzaydanBakincaGame />} />
         <Route path="/oyun/renk-avcisi" element={<RenkAvcisiGame />} />
+        <Route path="/oyun/pixel-ninja" element={<PixelNinjaGame />} />
 
         {GAMES.filter((g) => !IMPLEMENTED.has(g.id)).map((game) => (
           <Route
