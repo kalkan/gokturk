@@ -3,8 +3,12 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import path from "node:path";
 
+// GitHub Pages projesi `<user>.github.io/gokturk/` altında sunulur.
+// CI ortamında DEPLOY_BASE=/gokturk/ set ederiz; lokalde "/" kalır.
+const base = process.env.DEPLOY_BASE ?? "/";
+
 export default defineConfig({
-  base: "./",
+  base,
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
