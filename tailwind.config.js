@@ -61,6 +61,11 @@ export default {
           "0%": { transform: "rotate(0deg) translateX(var(--orbit-r, 120px)) rotate(0deg)" },
           "100%": { transform: "rotate(360deg) translateX(var(--orbit-r, 120px)) rotate(-360deg)" },
         },
+        "shake": {
+          "0%, 100%": { transform: "translateX(0)" },
+          "25%": { transform: "translateX(-6px)" },
+          "75%": { transform: "translateX(6px)" },
+        },
       },
       animation: {
         "spin-slow": "spin-slow 18s linear infinite",
