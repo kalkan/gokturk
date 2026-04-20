@@ -52,3 +52,17 @@ export interface ScoreEntry {
   points: number;
   playedAt: number;
 }
+
+/**
+ * Tek bir oyun turu sonunda yazılan özet kayıt — leaderboard'un yapı taşı.
+ * Skor toplamı, doğruluk oranı ve oyuncu adını içerir.
+ */
+export interface RoundResult {
+  id: string;
+  playerName: string;
+  gameId: GameId;
+  points: number;
+  correct: number;
+  total: number;
+  playedAt: number;
+}

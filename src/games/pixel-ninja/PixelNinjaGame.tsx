@@ -4,8 +4,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { GraduationCap, Home, RotateCcw, Send, Undo2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { MiniLeaderboard } from "@/components/shell/MiniLeaderboard";
 import { useScoreStore } from "@/store/scoreStore";
 import { useProgressStore } from "@/store/progressStore";
+import { useProfileStore } from "@/store/profileStore";
 import { getSceneSource } from "@/data/sceneLoader";
 import type { PixelNinjaScene, TerrainClass } from "@/data/types";
 import { SegmentCanvas } from "./SegmentCanvas";
@@ -31,10 +33,13 @@ export function PixelNinjaGame() {
   const [phase, setPhase] = useState<Phase>("playing");
   const [hovered, setHovered] = useState<string | null>(null);
   const [sessionScore, setSessionScore] = useState(0);
+  const [lastRoundId, setLastRoundId] = useState<string | null>(null);
   const scoredRef = useRef(false);
 
   const addPoints = useScoreStore((s) => s.addPoints);
+  const finishRound = useScoreStore((s) => s.finishRound);
   const markCompleted = useProgressStore((s) => s.markCompleted);
+  const playerName = useProfileStore((s) => s.playerName);
 
   useEffect(() => {
     let cancelled = false;
@@ -97,10 +102,20 @@ export function PixelNinjaGame() {
       addPoints("pixel-ninja", earned);
       setSessionScore((s) => s + earned);
       markCompleted("pixel-ninja", scene.id);
+      if (playerName) {
+        const entry = finishRound({
+          playerName,
+          gameId: "pixel-ninja",
+          points: earned,
+          correct,
+          total: scene.segments.length,
+        });
+        setLastRoundId(entry.id);
+      }
       scoredRef.current = true;
     }
     setPhase("reviewing");
-  }, [scene, allAssigned, phase, assignments, addPoints, markCompleted]);
+  }, [scene, allAssigned, phase, assignments, addPoints, markCompleted, finishRound, playerName]);
 
   const reviewResults = useMemo(() => {
     if (!scene || phase !== "reviewing") return null;
@@ -116,6 +131,7 @@ export function PixelNinjaGame() {
     setHistory([]);
     setSelected(null);
     setPhase("playing");
+    setLastRoundId(null);
     scoredRef.current = false;
   }, []);
 
@@ -194,6 +210,10 @@ export function PixelNinjaGame() {
             Bu oturumda toplam +{sessionScore} puan
           </p>
         )}
+
+        <div className="mt-6">
+          <MiniLeaderboard gameId="pixel-ninja" highlightId={lastRoundId} />
+        </div>
       </div>
     );
   }

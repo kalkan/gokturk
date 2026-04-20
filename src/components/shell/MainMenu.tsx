@@ -1,14 +1,21 @@
 import { motion } from "framer-motion";
 import { AnimatedSatellite } from "./AnimatedSatellite";
 import { GameCard } from "./GameCard";
+import { MiniLeaderboard } from "./MiniLeaderboard";
 import { GAMES } from "@/data/games";
+import { useProfileStore } from "@/store/profileStore";
+import { useScoreStore } from "@/store/scoreStore";
 
 /**
- * Ana menü ekranı: uydu illüstrasyonu, başlık ve üç oyun kartı.
- * Gamze testi (9 yaş) ve yeğen testi (13 yaş) göz önünde tutularak tasarlandı:
- * net büyük ikonlar, kısa başlıklar; arka plan atmosferik ama cluttered değil.
+ * Ana menü: uydu illüstrasyonu, selamlama, 3 oyun kartı ve en üst puan tablosu.
+ * İsmi olan oyuncuyu adıyla karşılar; kayıtlı round varsa her oyun için mini
+ * skorboard gösterir.
  */
 export function MainMenu() {
+  const playerName = useProfileStore((s) => s.playerName);
+  const rounds = useScoreStore((s) => s.rounds);
+  const hasAnyRound = rounds.length > 0;
+
   return (
     <div className="mx-auto max-w-5xl">
       <section className="flex flex-col items-center text-center">
@@ -19,7 +26,15 @@ export function MainMenu() {
           transition={{ delay: 0.15 }}
           className="heading mt-4 text-3xl font-bold leading-tight sm:text-5xl"
         >
-          Dünyaya <span className="text-gradient-signal">uzaydan</span> bakalım
+          {playerName ? (
+            <>
+              Hoş geldin, <span className="text-gradient-signal">{playerName}</span>!
+            </>
+          ) : (
+            <>
+              Dünyaya <span className="text-gradient-signal">uzaydan</span> bakalım
+            </>
+          )}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 8 }}
@@ -36,6 +51,22 @@ export function MainMenu() {
           <GameCard key={game.id} game={game} index={i} />
         ))}
       </section>
+
+      {hasAnyRound && (
+        <section className="mt-12">
+          <h2 className="heading mb-4 text-center text-lg font-semibold uppercase tracking-wider text-slate-300">
+            En yüksek skorlar
+          </h2>
+          <div className="grid gap-4 lg:grid-cols-3">
+            {GAMES.map((game) => (
+              <div key={game.id}>
+                <p className="mb-2 px-1 text-sm font-semibold text-slate-200">{game.title}</p>
+                <MiniLeaderboard gameId={game.id} title="Top 5" limit={5} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

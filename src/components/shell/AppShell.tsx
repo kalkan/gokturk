@@ -1,33 +1,46 @@
-import { type ReactNode, useEffect } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Radar } from "lucide-react";
+import { ArrowLeft, Pencil, Radar } from "lucide-react";
 import { Scoreboard } from "./Scoreboard";
 import { SpaceBackground } from "./SpaceBackground";
+import { NamePrompt } from "./NamePrompt";
 import { useScoreStore } from "@/store/scoreStore";
+import { useProfileStore } from "@/store/profileStore";
 
 interface AppShellProps {
   children: ReactNode;
 }
 
 /**
- * Tüm sayfaları saran kabuk: uzay arka planı, üst çubuk (logo + skor),
- * oyun sayfalarında geri butonu.
+ * Tüm sayfaları saran kabuk. Hydrasyon sonrası:
+ * - Oyun rotalarında ve profil adı yoksa otomatik NamePrompt açılır.
+ * - Ana menüden veya header'dan adın değiştirilmesi mümkündür.
  */
 export function AppShell({ children }: AppShellProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const hydrate = useScoreStore((s) => s.hydrate);
+
+  const hydrateScore = useScoreStore((s) => s.hydrate);
+  const hydrateProfile = useProfileStore((s) => s.hydrate);
+  const profileHydrated = useProfileStore((s) => s.hydrated);
+  const playerName = useProfileStore((s) => s.playerName);
+
+  const [editing, setEditing] = useState(false);
+
   const isHome = location.pathname === "/";
+  const isOnGame = location.pathname.startsWith("/oyun/");
+  const needsName = profileHydrated && !playerName && isOnGame;
 
   useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
+    void hydrateScore();
+    void hydrateProfile();
+  }, [hydrateScore, hydrateProfile]);
 
   return (
     <div className="relative min-h-screen">
       <SpaceBackground />
       <div className="relative z-10 flex min-h-screen flex-col">
-        <header className="flex items-center justify-between px-4 pt-4 sm:px-6 sm:pt-6">
+        <header className="flex items-center justify-between gap-2 px-4 pt-4 sm:px-6 sm:pt-6">
           <div className="flex items-center gap-3">
             {!isHome && (
               <button
@@ -47,7 +60,20 @@ export function AppShell({ children }: AppShellProps) {
               </span>
             </Link>
           </div>
-          <Scoreboard />
+
+          <div className="flex items-center gap-2">
+            {playerName && (
+              <button
+                onClick={() => setEditing(true)}
+                className="group hidden items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-200 hover:bg-white/10 sm:inline-flex"
+                aria-label={`Oyuncu: ${playerName} — adı değiştir`}
+              >
+                <span className="max-w-[10ch] truncate font-semibold">{playerName}</span>
+                <Pencil className="h-3.5 w-3.5 text-slate-400 group-hover:text-slate-200" />
+              </button>
+            )}
+            <Scoreboard />
+          </div>
         </header>
 
         <main className="flex-1 px-4 py-6 sm:px-6 sm:py-10">{children}</main>
@@ -58,6 +84,12 @@ export function AppShell({ children }: AppShellProps) {
           </p>
         </footer>
       </div>
+
+      <NamePrompt
+        open={needsName || editing}
+        dismissible={!!playerName}
+        onClose={() => setEditing(false)}
+      />
     </div>
   );
 }

@@ -4,8 +4,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Home, MapPin, RotateCcw, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { MiniLeaderboard } from "@/components/shell/MiniLeaderboard";
 import { useScoreStore } from "@/store/scoreStore";
 import { useProgressStore } from "@/store/progressStore";
+import { useProfileStore } from "@/store/profileStore";
 import { PixelGrid } from "./PixelGrid";
 import { TaskPanel } from "./TaskPanel";
 import { SceneCompleteModal } from "./SceneCompleteModal";
@@ -37,10 +39,14 @@ export function RenkAvcisiGame() {
   const [sessionScore, setSessionScore] = useState(0);
   const [sceneCorrect, setSceneCorrect] = useState(0);
   const [totalCorrect, setTotalCorrect] = useState(0);
+  const [lastRoundId, setLastRoundId] = useState<string | null>(null);
   const timerRef = useRef<number | null>(null);
+  const roundRecordedRef = useRef(false);
 
   const addPoints = useScoreStore((s) => s.addPoints);
+  const finishRound = useScoreStore((s) => s.finishRound);
   const markCompleted = useProgressStore((s) => s.markCompleted);
+  const playerName = useProfileStore((s) => s.playerName);
 
   const scene = RENK_AVCISI_SCENES[sceneIndex];
   const task = scene?.tasks[taskIndex];
@@ -107,11 +113,26 @@ export function RenkAvcisiGame() {
     setSessionScore(0);
     setSceneCorrect(0);
     setTotalCorrect(0);
+    setLastRoundId(null);
+    roundRecordedRef.current = false;
   }, []);
 
-  if (!scene || !task) return null;
-
   const totalTasksAll = RENK_AVCISI_SCENES.reduce((n, s) => n + s.tasks.length, 0);
+
+  useEffect(() => {
+    if (phase !== "done" || roundRecordedRef.current || !playerName) return;
+    const entry = finishRound({
+      playerName,
+      gameId: "renk-avcisi",
+      points: sessionScore,
+      correct: totalCorrect,
+      total: totalTasksAll,
+    });
+    setLastRoundId(entry.id);
+    roundRecordedRef.current = true;
+  }, [phase, playerName, sessionScore, totalCorrect, totalTasksAll, finishRound]);
+
+  if (!scene || !task) return null;
 
   if (phase === "done") {
     const accuracy = Math.round((totalCorrect / totalTasksAll) * 100);
@@ -144,6 +165,10 @@ export function RenkAvcisiGame() {
             </div>
           </Card>
         </motion.div>
+
+        <div className="mt-6">
+          <MiniLeaderboard gameId="renk-avcisi" highlightId={lastRoundId} />
+        </div>
       </div>
     );
   }

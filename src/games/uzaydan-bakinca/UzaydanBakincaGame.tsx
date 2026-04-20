@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, Home, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { MiniLeaderboard } from "@/components/shell/MiniLeaderboard";
 import { useScoreStore } from "@/store/scoreStore";
 import { useProgressStore } from "@/store/progressStore";
+import { useProfileStore } from "@/store/profileStore";
 import { getSceneSource } from "@/data/sceneLoader";
 import type { SatelliteScene } from "@/data/types";
 import { SceneDisplay } from "./SceneDisplay";
@@ -34,10 +36,14 @@ export function UzaydanBakincaGame() {
   const [picked, setPicked] = useState<SceneOption | null>(null);
   const [sessionScore, setSessionScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
+  const [lastRoundId, setLastRoundId] = useState<string | null>(null);
   const timerRef = useRef<number | null>(null);
+  const roundRecordedRef = useRef(false);
 
   const addPoints = useScoreStore((s) => s.addPoints);
+  const finishRound = useScoreStore((s) => s.finishRound);
   const markCompleted = useProgressStore((s) => s.markCompleted);
+  const playerName = useProfileStore((s) => s.playerName);
 
   useEffect(() => {
     let cancelled = false;
@@ -97,12 +103,27 @@ export function UzaydanBakincaGame() {
     setSessionScore(0);
     setCorrectCount(0);
     setIndex(0);
+    setLastRoundId(null);
+    roundRecordedRef.current = false;
     void getSceneSource()
       .listScenes()
       .then((all) => setQueue(shuffle(all)));
   }, []);
 
   const total = queue?.length ?? 0;
+
+  useEffect(() => {
+    if (phase !== "done" || roundRecordedRef.current || !playerName || total === 0) return;
+    const entry = finishRound({
+      playerName,
+      gameId: "uzaydan-bakinca",
+      points: sessionScore,
+      correct: correctCount,
+      total,
+    });
+    setLastRoundId(entry.id);
+    roundRecordedRef.current = true;
+  }, [phase, playerName, sessionScore, correctCount, total, finishRound]);
 
   const optionState = useCallback(
     (opt: SceneOption): "idle" | "correct" | "wrong" | "muted" => {
@@ -174,6 +195,10 @@ export function UzaydanBakincaGame() {
             </div>
           </Card>
         </motion.div>
+
+        <div className="mt-6">
+          <MiniLeaderboard gameId="uzaydan-bakinca" highlightId={lastRoundId} />
+        </div>
       </div>
     );
   }
